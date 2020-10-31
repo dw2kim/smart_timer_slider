@@ -8,13 +8,17 @@ import 'package:smart_timer_slider/util.dart';
 class SmartTimerSlider extends StatefulWidget {
   final Duration duration;
   final ValueChanged<Duration> onChange;
+  final Widget labelWidget;
   final Color pointerColor;
   final Color backgroundColor;
+  final GestureTapUpCallback onTapUp;
 
   const SmartTimerSlider({
     Key key,
     @required this.duration,
+    @required this.labelWidget,
     @required this.onChange,
+    @required this.onTapUp,
     this.pointerColor = Colors.red,
     this.backgroundColor = Colors.blueGrey,
   }) : super(key: key);
@@ -31,9 +35,10 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
   int startDragHeight;
   double widgetHeight = 50;
   double labelFontSize = 12.0;
+  int prevHeight = -1;
 
   double get _pixelsPerUnit {
-    return _drawingHeight / totalUnits;
+    return _currentHeight / totalUnits;
   }
 
   double get _sliderPosition {
@@ -42,7 +47,7 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
     return halfOfBottomLabel + unitsFromBottom * _pixelsPerUnit;
   }
 
-  double get _drawingHeight {
+  double get _currentHeight {
     double totalHeight = this.widgetHeight;
     double marginBottom = 12.0;
     double marginTop = 12.0;
@@ -60,14 +65,16 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
           return GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTapDown: this._onTapDown,
+            onTapUp: widget.onTapUp,
+            onVerticalDragEnd: (_) => widget.onTapUp(null),
             onVerticalDragStart: this._onDragStart,
             onVerticalDragUpdate: this._onDragUpdate,
             child: Stack(
               overflow: Overflow.visible,
               children: <Widget>[
-                _drawSlider(),
-                _drawerSliderBackground(),
-                _drawLabels(),
+                _getSlider(),
+                _getSliderBackground(),
+                widget.labelWidget,
               ],
             ),
           );
@@ -79,7 +86,10 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
   _onTapDown(TapDownDetails tapDownDetails) {
     int height = _globalOffsetToHeight(tapDownDetails.globalPosition);
     height = _normalizeHeight(height);
-    widget.onChange(convertValueToDuration(height));
+    if (prevHeight != height) {
+      prevHeight = height;
+      widget.onChange(convertValueToDuration(height));
+    }
   }
 
   int _normalizeHeight(int height) {
@@ -102,7 +112,10 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
 
   _onDragStart(DragStartDetails dragStartDetails) {
     int newHeight = _globalOffsetToHeight(dragStartDetails.globalPosition);
-    widget.onChange(convertValueToDuration(newHeight));
+    if (prevHeight != newHeight) {
+      prevHeight = newHeight;
+      widget.onChange(convertValueToDuration(newHeight));
+    }
     setState(() {
       startDragYOffset = dragStartDetails.globalPosition.dy;
       startDragHeight = newHeight;
@@ -114,10 +127,14 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
     double verticalDifference = startDragYOffset - currentYOffset;
     int diffHeight = verticalDifference ~/ _pixelsPerUnit;
     int height = _normalizeHeight(startDragHeight + diffHeight);
-    setState(() => widget.onChange(convertValueToDuration(height)));
+
+    if (prevHeight != height) {
+      prevHeight = height;
+      setState(() => widget.onChange(convertValueToDuration(height)));
+    }
   }
 
-  Widget _drawSlider() {
+  Widget _getSlider() {
     return Positioned(
       child: Opacity(
         opacity: 0.5,
@@ -132,7 +149,7 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
     );
   }
 
-  Widget _drawerSliderBackground() {
+  Widget _getSliderBackground() {
     return Positioned(
       child: Container(
         height: widgetHeight,
@@ -141,17 +158,6 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
       left: 0.0,
       right: 0.0,
       bottom: _sliderPosition + pointerHeight,
-    );
-  }
-
-  Widget _drawLabels() {
-    return Padding(
-      padding: const EdgeInsets.all(50.0),
-      child: Align(
-        alignment: Alignment.topCenter,
-        child:
-            IgnorePointer(child: Text('${durationToString(widget.duration)}')),
-      ),
     );
   }
 }

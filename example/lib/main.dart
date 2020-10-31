@@ -1,5 +1,5 @@
+import 'package:example/adjust_timer_page.dart';
 import 'package:flutter/material.dart';
-import 'package:smart_timer_slider/smart_timer_slider.dart';
 
 void main() => runApp(MyApp());
 
@@ -26,9 +26,14 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: SmartTimerSlider(
-          duration: duration,
-          onChange: (val) => setState(() => duration = val),
+        child: RaisedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AdjustTimerPage()),
+            );
+          },
+          child: Text('Go to Smart Timer Page'),
         ),
       ),
     );
