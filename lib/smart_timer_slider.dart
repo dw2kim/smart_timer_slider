@@ -3,15 +3,17 @@ library smart_timer_slider;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:smart_timer_slider/util.dart';
 
 class SmartTimerSlider extends StatefulWidget {
   final Duration duration;
   final ValueChanged<Duration> onChange;
+  final GestureTapUpCallback onTapUp;
+  final Function(int) convertValueToDuration;
+  final Function(Duration) convertDurationToValue;
   final Widget labelWidget;
   final Color pointerColor;
   final Color backgroundColor;
-  final GestureTapUpCallback onTapUp;
+  final int totalUnits; // This is the number of units
 
   const SmartTimerSlider({
     Key key,
@@ -19,9 +21,13 @@ class SmartTimerSlider extends StatefulWidget {
     @required this.labelWidget,
     @required this.onChange,
     @required this.onTapUp,
+    @required this.convertValueToDuration,
+    @required this.convertDurationToValue,
+    this.totalUnits = 54,
     this.pointerColor = Colors.red,
     this.backgroundColor = Colors.blueGrey,
-  }) : super(key: key);
+  })  : assert(totalUnits > 0),
+        super(key: key);
 
   @override
   _SmartTimerSliderState createState() => _SmartTimerSliderState();
@@ -29,21 +35,20 @@ class SmartTimerSlider extends StatefulWidget {
 
 class _SmartTimerSliderState extends State<SmartTimerSlider> {
   final double pointerHeight = 50;
-  final int totalUnits = 54; // This is the number of units
 
   double startDragYOffset;
   int startDragHeight;
   double widgetHeight = 50;
-  double labelFontSize = 12.0;
+  double tapAreaSize = 12.0;
   int prevHeight = -1;
 
   double get _pixelsPerUnit {
-    return _currentHeight / totalUnits;
+    return _currentHeight / widget.totalUnits;
   }
 
   double get _sliderPosition {
-    double halfOfBottomLabel = labelFontSize / 2;
-    int unitsFromBottom = convertDurationToValue(widget.duration);
+    double halfOfBottomLabel = tapAreaSize / 2;
+    int unitsFromBottom = widget.convertDurationToValue(widget.duration);
     return halfOfBottomLabel + unitsFromBottom * _pixelsPerUnit;
   }
 
@@ -51,7 +56,7 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
     double totalHeight = this.widgetHeight;
     double marginBottom = 12.0;
     double marginTop = 12.0;
-    return totalHeight - (marginBottom + marginTop + labelFontSize);
+    return totalHeight - (marginBottom + marginTop + tapAreaSize);
   }
 
   @override
@@ -83,12 +88,36 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
     );
   }
 
-  _onTapDown(TapDownDetails tapDownDetails) {
-    int height = _globalOffsetToHeight(tapDownDetails.globalPosition);
+  _onTapDown(TapDownDetails details) {
+    int height = _globalOffsetToHeight(details.globalPosition);
     height = _normalizeHeight(height);
     if (prevHeight != height) {
       prevHeight = height;
-      widget.onChange(convertValueToDuration(height));
+      widget.onChange(widget.convertValueToDuration(height));
+    }
+  }
+
+  _onDragStart(DragStartDetails details) {
+    int newHeight = _globalOffsetToHeight(details.globalPosition);
+    if (prevHeight != newHeight) {
+      prevHeight = newHeight;
+      widget.onChange(widget.convertValueToDuration(newHeight));
+    }
+    setState(() {
+      startDragYOffset = details.globalPosition.dy;
+      startDragHeight = newHeight;
+    });
+  }
+
+  _onDragUpdate(DragUpdateDetails details) {
+    double currentYOffset = details.globalPosition.dy;
+    double verticalDifference = startDragYOffset - currentYOffset;
+    int diffHeight = verticalDifference ~/ _pixelsPerUnit;
+    int height = _normalizeHeight(startDragHeight + diffHeight);
+
+    if (prevHeight != height) {
+      prevHeight = height;
+      setState(() => widget.onChange(widget.convertValueToDuration(height)));
     }
   }
 
@@ -96,42 +125,18 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
     return math.max(
         0,
         math.min(
-          totalUnits - 1, // Skip the first block
+          widget.totalUnits - 1, // Skip the first block
           height,
         ));
   }
 
-  int _globalOffsetToHeight(Offset globalOffset) {
+  int _globalOffsetToHeight(Offset offset) {
     RenderBox getBox = context.findRenderObject();
-    Offset localPosition = getBox.globalToLocal(globalOffset);
+    Offset localPosition = getBox.globalToLocal(offset);
     double dy = localPosition.dy;
-    dy = dy - 12.0 - labelFontSize / 2;
-    int height = totalUnits - (dy ~/ _pixelsPerUnit);
+    dy = dy - 12.0 - tapAreaSize / 2;
+    int height = widget.totalUnits - (dy ~/ _pixelsPerUnit);
     return height;
-  }
-
-  _onDragStart(DragStartDetails dragStartDetails) {
-    int newHeight = _globalOffsetToHeight(dragStartDetails.globalPosition);
-    if (prevHeight != newHeight) {
-      prevHeight = newHeight;
-      widget.onChange(convertValueToDuration(newHeight));
-    }
-    setState(() {
-      startDragYOffset = dragStartDetails.globalPosition.dy;
-      startDragHeight = newHeight;
-    });
-  }
-
-  _onDragUpdate(DragUpdateDetails dragUpdateDetails) {
-    double currentYOffset = dragUpdateDetails.globalPosition.dy;
-    double verticalDifference = startDragYOffset - currentYOffset;
-    int diffHeight = verticalDifference ~/ _pixelsPerUnit;
-    int height = _normalizeHeight(startDragHeight + diffHeight);
-
-    if (prevHeight != height) {
-      prevHeight = height;
-      setState(() => widget.onChange(convertValueToDuration(height)));
-    }
   }
 
   Widget _getSlider() {

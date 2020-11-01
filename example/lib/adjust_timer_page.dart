@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:smart_timer_slider/smart_timer_slider.dart';
-import 'package:smart_timer_slider/util.dart';
 
 class AdjustTimerPage extends StatefulWidget {
-  AdjustTimerPage({Key key}) : super(key: key);
+  final Function(int) convertValueToDuration;
+  final Function(Duration) convertDurationToValue;
+  final Function(Duration) durationToString;
+
+  AdjustTimerPage({
+    Key key,
+    @required this.convertValueToDuration,
+    @required this.convertDurationToValue,
+    @required this.durationToString,
+  }) : super(key: key);
 
   @override
   _AdjustTimerPageState createState() => _AdjustTimerPageState();
@@ -27,6 +35,8 @@ class _AdjustTimerPageState extends State<AdjustTimerPage> {
           onTapUp: (dragUpdateDetails) {
             Navigator.pop(context);
           },
+          convertValueToDuration: widget.convertValueToDuration,
+          convertDurationToValue: widget.convertDurationToValue,
         ),
       ),
     );
@@ -37,7 +47,10 @@ class _AdjustTimerPageState extends State<AdjustTimerPage> {
       padding: const EdgeInsets.all(50.0),
       child: Align(
         alignment: Alignment.topCenter,
-        child: IgnorePointer(child: Text('${durationToString(duration)}')),
+        child: IgnorePointer(
+            child: Text(
+          '${widget.durationToString(duration)}',
+        )),
       ),
     );
   }

@@ -1,4 +1,4 @@
-String durationToString(Duration duration) {
+String durationToTime(Duration duration) {
   String twoDigits(num n) => n.toString().padLeft(2, '0');
   var twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
   var twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
@@ -8,7 +8,11 @@ String durationToString(Duration duration) {
   return '$hours$twoDigitMinutes:$twoDigitSeconds';
 }
 
-Duration convertValueToDuration(int value) {
+String durationToInt(Duration duration) {
+  return duration.inSeconds.toString();
+}
+
+Duration convertWorkValueToDuration(int value) {
   final firstRangeStart = 53;
   final secondRangeStart = 43;
   final thirdRangeStart = 38;
@@ -39,9 +43,56 @@ Duration convertValueToDuration(int value) {
   return Duration(seconds: 0);
 }
 
-int convertDurationToValue(Duration duration) {
+Duration convertRestValueToDuration(int value) {
+  final firstRangeStart = 53;
+  final secondRangeStart = 47;
+  final thirdRangeStart = 24;
+  final forthRangeStart = 12;
+  final fifthRangeStart = 4;
+
+  if (value <= firstRangeStart && value >= secondRangeStart) {
+    return Duration(seconds: firstRangeStart - value);
+  } else if (value < secondRangeStart && value >= thirdRangeStart) {
+    return Duration(seconds: 5 + (5 * (secondRangeStart - value)));
+  } else if (value < thirdRangeStart && value >= forthRangeStart) {
+    return Duration(seconds: 120 + (10 * (thirdRangeStart - value)));
+  } else if (value < forthRangeStart && value >= fifthRangeStart) {
+    return Duration(seconds: 240 + (15 * (forthRangeStart - value)));
+  } else if (value < fifthRangeStart) {
+    return Duration(seconds: 360 + (30 * (fifthRangeStart - value)));
+  }
+
+  return Duration(seconds: 0);
+}
+
+Duration convertRepValueToDuration(int value) {
+  final firstRangeStart = 53;
+  return Duration(seconds: firstRangeStart - value);
+}
+
+int convertDurationToWorkValue(Duration duration) {
   for (int i = 53; i >= 0; i--) {
-    if (duration == convertValueToDuration(i)) {
+    if (duration == convertWorkValueToDuration(i)) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+int convertDurationToRestValue(Duration duration) {
+  for (int i = 53; i >= 0; i--) {
+    if (duration == convertRestValueToDuration(i)) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+int convertDurationToRepValue(Duration duration) {
+  for (int i = 53; i >= 0; i--) {
+    if (duration == convertRepValueToDuration(i)) {
       return i;
     }
   }
