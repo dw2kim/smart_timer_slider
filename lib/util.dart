@@ -66,7 +66,7 @@ Duration convertRestValueToDuration(int value) {
 }
 
 Duration convertRepValueToDuration(int value) {
-  final firstRangeStart = 53;
+  final firstRangeStart = 54;
   return Duration(seconds: firstRangeStart - value);
 }
 
