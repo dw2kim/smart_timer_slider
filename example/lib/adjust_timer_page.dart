@@ -8,10 +8,10 @@ class AdjustTimerPage extends StatefulWidget {
   final Function(Duration) durationToString;
 
   AdjustTimerPage({
-    Key key,
-    @required this.convertValueToDuration,
-    @required this.convertDurationToValue,
-    @required this.durationToString,
+    Key? key,
+    required this.convertValueToDuration,
+    required this.convertDurationToValue,
+    required this.durationToString,
   }) : super(key: key);
 
   @override

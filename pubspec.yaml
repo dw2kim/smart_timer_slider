@@ -1,12 +1,11 @@
 name: smart_timer_slider
 description: A vertical slider that takes a full screen to adjust duration for timer  
 version: 0.0.1
-author:
+author: Dae Won Kim
 homepage:
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
-  flutter: ">=1.17.0 <2.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:

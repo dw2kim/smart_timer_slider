@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key}) : super(key: key);
+  MyHomePage({Key? key}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -30,7 +30,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: [
             Spacer(),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -46,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: Text('Go to Smart Timer Page - Rest Time'),
             ),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -62,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: Text('Go to Smart Timer Page - Work Time'),
             ),
-            RaisedButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,

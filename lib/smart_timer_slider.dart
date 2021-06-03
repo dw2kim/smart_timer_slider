@@ -2,6 +2,7 @@ library smart_timer_slider;
 
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class SmartTimerSlider extends StatefulWidget {
@@ -16,13 +17,13 @@ class SmartTimerSlider extends StatefulWidget {
   final int totalUnits; // This is the number of units
 
   const SmartTimerSlider({
-    Key key,
-    @required this.duration,
-    @required this.labelWidget,
-    @required this.onChange,
-    @required this.onTapUp,
-    @required this.convertValueToDuration,
-    @required this.convertDurationToValue,
+    Key? key,
+    required this.duration,
+    required this.labelWidget,
+    required this.onChange,
+    required this.onTapUp,
+    required this.convertValueToDuration,
+    required this.convertDurationToValue,
     this.totalUnits = 54,
     this.pointerColor = Colors.red,
     this.backgroundColor = Colors.blueGrey,
@@ -36,8 +37,8 @@ class SmartTimerSlider extends StatefulWidget {
 class _SmartTimerSliderState extends State<SmartTimerSlider> {
   final double pointerHeight = 50;
 
-  double startDragYOffset;
-  int startDragHeight;
+  double startDragYOffset = 0;
+  int startDragHeight = 0;
   double widgetHeight = 50;
   double tapAreaSize = 12.0;
   int prevHeight = -1;
@@ -71,11 +72,13 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
             behavior: HitTestBehavior.translucent,
             onTapDown: this._onTapDown,
             onTapUp: widget.onTapUp,
-            onVerticalDragEnd: (_) => widget.onTapUp(null),
+            onVerticalDragEnd: (_) =>
+                widget.onTapUp(TapUpDetails(kind: PointerDeviceKind.unknown)),
             onVerticalDragStart: this._onDragStart,
             onVerticalDragUpdate: this._onDragUpdate,
             child: Stack(
-              overflow: Overflow.visible,
+              // todo: null safety change
+              clipBehavior: Clip.hardEdge,
               children: <Widget>[
                 _getSlider(),
                 _getSliderBackground(),
@@ -131,7 +134,8 @@ class _SmartTimerSliderState extends State<SmartTimerSlider> {
   }
 
   int _globalOffsetToHeight(Offset offset) {
-    RenderBox getBox = context.findRenderObject();
+    var getBox = context.findRenderObject() as RenderBox;
+
     Offset localPosition = getBox.globalToLocal(offset);
     double dy = localPosition.dy;
     dy = dy - 12.0 - tapAreaSize / 2;
